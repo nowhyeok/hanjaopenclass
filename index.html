@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;500;700&family=Nunito:wght@700;800;900&display=swap">
 <style>
-/* Layout: one column for a classroom tablet — question card, syllable slots, then one big keypad for the current step (초성 → 중성 → 종성). Single light look, chosen on purpose to match the printed worksheet. */
+/* Layout: one shared tablet per 4-person group. A role strip says whose turn it is, the word card and syllable slots sit in the middle, one big keypad for the current part below. Single light look, chosen on purpose to match the printed worksheet. */
 :root {
   color-scheme: light;
   --paper: #f7f3ff;
@@ -21,9 +21,11 @@
   --sun: #f3d98a;
   --sun-tint: #fff6d6;
   --amber: #a14a06;
+  --pink: #d6336c;
   --cho: #2563eb;  --cho-tint: #e3edff;
   --jung: #c64f0a; --jung-tint: #ffeedd;
   --jong: #0b8a63; --jong-tint: #dcf5ea;
+  --judge: #6d3fd1; --judge-tint: #efe8ff;
   --bad: #c2263c;  --bad-tint: #ffe4e8;
   --display: 'Jua', 'Noto Sans KR', system-ui, sans-serif;
   --body: 'Noto Sans KR', system-ui, sans-serif;
@@ -38,78 +40,90 @@ button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulat
 button:focus-visible, input:focus-visible { outline: 3px solid var(--purple); outline-offset: 2px; }
 .wrap { max-width: 980px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
 
-/* header */
 .top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.ribbon { background: #d6336c; color: #fff; font-family: var(--display); font-size: 15px; padding: 4px 14px; border-radius: 999px; white-space: nowrap; }
+.ribbon { background: var(--pink); color: #fff; font-family: var(--display); font-size: 15px; padding: 4px 14px; border-radius: 999px; white-space: nowrap; }
 h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(24px, 4vw, 32px); color: var(--purple); line-height: 1.15; text-wrap: balance; }
-.top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .ghost { background: var(--card); border: 2px solid var(--line); border-radius: 999px; padding: 8px 16px; font-weight: 700; color: var(--purple-deep); min-height: 44px; }
 .ghost:hover { border-color: var(--purple); }
 
-/* mode tabs */
-.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.tab { background: var(--card); border: 2px solid var(--line); border-radius: var(--r); padding: 10px 8px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; }
+.tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tab { background: var(--card); border: 2px solid var(--line); border-radius: var(--r); padding: 10px 8px; min-height: 64px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .tab b { white-space: nowrap; font-family: var(--display); font-weight: 400; font-size: 19px; color: var(--purple-deep); }
 .tab span { font-size: 13px; color: var(--muted); }
 .tab[aria-selected="true"] { background: var(--purple); border-color: var(--purple); }
 .tab[aria-selected="true"] b, .tab[aria-selected="true"] span { color: #fff; }
 
-/* filter + progress */
-.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
-.chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { border: 2px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 14px; color: var(--muted); min-height: 40px; }
-.chip[aria-pressed="true"] { border-color: var(--purple); color: var(--purple-deep); background: var(--purple-tint); }
-.progress { display: flex; align-items: center; gap: 10px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
-.meter { width: 140px; height: 12px; border-radius: 999px; background: var(--line); overflow: hidden; }
-.meter i { display: block; height: 100%; background: var(--purple); border-radius: 999px; transition: width .3s; }
-.stars { color: var(--amber); font-family: var(--display); font-size: 18px; }
-
-/* question card */
 .stage { background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 16px; }
+.pad { background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+/* status bar */
+.status { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.status .left { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.pill { border: 2px solid var(--line); background: #fff; border-radius: 999px; padding: 4px 12px; font-weight: 700; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.pill.strong { border-color: var(--purple); color: var(--purple-deep); background: var(--purple-tint); }
+.score { font-family: var(--display); font-size: 22px; color: var(--amber); }
+
+/* role strip */
+.roles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.role { border: 2.5px solid var(--line); border-radius: 14px; padding: 6px 8px; text-align: center; background: #fff; opacity: .55; transition: opacity .2s, transform .2s; }
+.role small { display: block; font-size: 12px; font-weight: 700; }
+.role b { display: block; font-family: var(--display); font-weight: 400; font-size: 20px; line-height: 1.2; overflow-wrap: anywhere; }
+.role.c { border-color: var(--cho); } .role.c small { color: var(--cho); }
+.role.v { border-color: var(--jung); } .role.v small { color: var(--jung); }
+.role.f { border-color: var(--jong); } .role.f small { color: var(--jong); }
+.role.j { border-color: var(--judge); } .role.j small { color: var(--judge); }
+.role.on { opacity: 1; transform: translateY(-2px); }
+.role.on.c { background: var(--cho-tint); } .role.on.v { background: var(--jung-tint); } .role.on.f { background: var(--jong-tint); } .role.on.j { background: var(--judge-tint); }
+
+.turn { border-radius: var(--r); padding: 12px 16px; text-align: center; font-family: var(--display); font-size: clamp(22px, 4vw, 28px); color: #fff; line-height: 1.3; }
+.turn.c { background: var(--cho); } .turn.v { background: var(--jung); } .turn.f { background: var(--jong); } .turn.j { background: var(--judge); }
+.turn small { display: block; font-family: var(--body); font-size: 15px; font-weight: 500; opacity: .95; }
+
+/* word card */
 .question { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; background: var(--sun-tint); border: 2px solid var(--sun); border-radius: var(--r); padding: 14px 18px; }
 .q-main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .q-tag { align-self: flex-start; font-size: 13px; font-weight: 700; color: var(--amber); background: #fff; border: 1.5px solid var(--sun); padding: 1px 10px; border-radius: 999px; }
 .q-word { font-family: var(--display); font-size: clamp(40px, 7vw, 60px); line-height: 1.1; }
-.q-roman { font-family: var(--latin); font-weight: 900; font-size: clamp(36px, 7vw, 56px); line-height: 1.1; letter-spacing: .01em; overflow-wrap: anywhere; }
+.q-roman { font-family: var(--latin); font-weight: 900; font-size: clamp(38px, 7vw, 60px); line-height: 1.1; overflow-wrap: anywhere; }
 .q-note { font-size: 15px; color: var(--muted); }
 .q-note b { color: var(--ink); }
-.q-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.small-btn { background: #fff; border: 2px solid var(--sun); border-radius: 999px; padding: 6px 14px; font-weight: 700; font-size: 14px; color: var(--amber); min-height: 40px; }
 
 /* slots */
 .slots { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: stretch; }
-.space { width: 18px; }
-.slot { width: 132px; border: 2.5px dashed var(--line); border-radius: var(--r); padding: 10px 8px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #fff; transition: transform .15s; }
+.slot { width: 132px; border: 2.5px dashed var(--line); border-radius: var(--r); padding: 10px 8px 8px; display: flex; flex-direction: column; align-items: center; gap: 8px; background: #fff; }
 .slot.cur { border-style: solid; border-color: var(--purple); box-shadow: 0 0 0 4px var(--purple-tint); }
 .slot.ok { border-style: solid; border-color: var(--jong); background: #f3fbf7; }
 .slot.wrong { border-style: solid; border-color: var(--bad); background: var(--bad-tint); animation: shake .4s; }
 @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
-.syl { font-family: var(--display); font-size: 54px; line-height: 1; height: 58px; display: flex; align-items: center; color: var(--ink); }
+.syl { font-family: var(--display); font-size: 54px; line-height: 1; height: 58px; display: flex; align-items: center; }
 .syl.empty { color: var(--line); }
+.syl.target { color: var(--purple-deep); }
 .parts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; width: 100%; }
-.part { border: 2px solid; border-radius: 9px; text-align: center; padding: 2px 0 3px; min-height: 50px; display: flex; flex-direction: column; justify-content: center; }
+.part { border: 2px solid; border-radius: 9px; text-align: center; padding: 2px 0 3px; min-height: 50px; display: flex; flex-direction: column; justify-content: center; background: #fff; }
+button.part { cursor: pointer; }
+button.part:hover { outline: 3px solid var(--bad); }
 .part small { font-size: 11px; font-weight: 700; line-height: 1.1; }
+.part .solo { font-weight: 800; font-size: 17px; line-height: 1.25; }
+.part .solo.lat { font-family: var(--latin); font-weight: 900; }
 .part .j { font-weight: 700; font-size: 15px; line-height: 1.2; }
 .part .r { font-family: var(--latin); font-weight: 900; font-size: 15px; line-height: 1.15; }
 .part.cho { border-color: var(--cho); background: var(--cho-tint); } .part.cho small { color: var(--cho); }
 .part.jung { border-color: var(--jung); background: var(--jung-tint); } .part.jung small { color: var(--jung); }
 .part.jong { border-color: var(--jong); background: var(--jong-tint); } .part.jong small { color: var(--jong); }
 .part.blank { background: #fff; opacity: .55; }
-.part.miss { outline: 3px solid var(--bad); outline-offset: 1px; }
+.part.miss { outline: 3px solid var(--bad); outline-offset: 1px; background: var(--bad-tint); }
 
-/* built line */
 .built { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 12px; text-align: center; }
 .built-label { font-size: 14px; font-weight: 700; color: var(--muted); }
 .built-out { font-family: var(--latin); font-weight: 900; font-size: clamp(30px, 6vw, 44px); line-height: 1.15; min-height: 1.15em; overflow-wrap: anywhere; }
 .built-out .c { color: var(--cho); } .built-out .v { color: var(--jung); } .built-out .f { color: var(--jong); } .built-out .cursor { color: var(--line); }
 .built-out.ko { font-family: var(--display); font-weight: 400; }
 
-.feedback { min-height: 30px; text-align: center; font-weight: 700; font-size: 17px; color: var(--muted); }
+.feedback { min-height: 28px; text-align: center; font-weight: 700; font-size: 17px; color: var(--muted); }
 .feedback.good { color: var(--jong); } .feedback.bad { color: var(--bad); }
 
 /* keypad */
-.pad { background: var(--card); border: 2px solid var(--line); border-radius: 22px; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
 .pad-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
 .steps { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .step { font-family: var(--display); font-size: 17px; padding: 4px 12px; border-radius: 999px; border: 2px solid var(--line); color: var(--muted); background: #fff; }
@@ -117,7 +131,7 @@ h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(
 .step.on.jung { background: var(--jung); border-color: var(--jung); color: #fff; }
 .step.on.jong { background: var(--jong); border-color: var(--jong); color: #fff; }
 .arrow { color: var(--muted); font-weight: 700; }
-.pad-tools { display: flex; gap: 8px; flex-wrap: wrap; }
+.tools { display: flex; gap: 8px; flex-wrap: wrap; }
 .tool { border: 2px solid var(--line); background: #fff; border-radius: 12px; padding: 6px 14px; font-weight: 700; min-height: 44px; color: var(--purple-deep); }
 .pad-hint { margin: 0; font-size: 15px; color: var(--muted); }
 .pad-hint b { color: var(--ink); }
@@ -125,70 +139,77 @@ h1 { margin: 0; font-family: var(--display); font-weight: 400; font-size: clamp(
 .key { border: 2px solid; border-radius: 14px; min-height: 66px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; transition: transform .08s; }
 .key:active { transform: scale(.94); }
 .key .big { font-weight: 700; font-size: 24px; line-height: 1.1; }
+.key .big.latin { font-family: var(--latin); font-weight: 900; font-size: 26px; }
 .key .sm { font-family: var(--latin); font-weight: 800; font-size: 15px; line-height: 1.2; }
-.keys.flip .key .big { font-family: var(--latin); font-weight: 900; font-size: 22px; }
-.keys.flip .key .sm { font-family: var(--body); font-weight: 700; font-size: 15px; }
-.key.cho { border-color: var(--cho); } .key.cho .sm, .keys.flip .key.cho .big { color: var(--cho); }
-.key.jung { border-color: var(--jung); } .key.jung .sm, .keys.flip .key.jung .big { color: var(--jung); }
-.key.cho:hover { background: var(--cho-tint); } .key.jung:hover { background: var(--jung-tint); }
 .key .silent { font-family: var(--body); font-size: 12px; font-weight: 700; }
-.groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: start; }
-.group { border: 2px solid var(--jong); background: var(--jong-tint); border-radius: 16px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-.group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; padding: 0 4px; }
-.group-head .gr { font-family: var(--latin); font-weight: 900; font-size: 22px; color: var(--jong); }
-.group-head .gn { font-size: 12px; font-weight: 700; color: var(--muted); }
-.group-keys { display: flex; flex-wrap: wrap; gap: 6px; }
-.gkey { flex: 1 0 52px; min-height: 52px; border: 2px solid var(--jong); background: #fff; border-radius: 12px; font-weight: 700; font-size: 22px; }
-.gkey:hover { background: #fff; box-shadow: inset 0 0 0 2px var(--jong); }
-.nojong { border: 2px dashed var(--jong); background: #fff; border-radius: 16px; min-height: 60px; font-family: var(--display); font-size: 20px; color: var(--jong); }
+.key.cho { border-color: var(--cho); } .key.cho .big.latin, .key.cho .sm { color: var(--cho); } .key.cho:hover { background: var(--cho-tint); }
+.key.jung { border-color: var(--jung); } .key.jung .big.latin, .key.jung .sm { color: var(--jung); } .key.jung:hover { background: var(--jung-tint); }
+.key.jong { border-color: var(--jong); } .key.jong .big.latin, .key.jong .sm { color: var(--jong); } .key.jong:hover { background: var(--jong-tint); }
 
-/* free mode */
-.free-tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-.toggle { display: flex; align-items: center; gap: 8px; font-weight: 700; color: var(--muted); min-height: 44px; }
-.toggle input { width: 22px; height: 22px; accent-color: var(--purple); }
-
-/* result */
-.result { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 0; }
-.result .from { font-family: var(--display); font-size: 30px; }
-.result .to { font-family: var(--latin); font-weight: 900; font-size: clamp(40px, 8vw, 64px); color: var(--purple); line-height: 1.1; overflow-wrap: anywhere; }
-.primary { background: var(--purple); color: #fff; border: 0; border-radius: 999px; padding: 12px 28px; font-family: var(--display); font-size: 22px; min-height: 54px; }
+/* buttons, forms, results */
+.primary { background: var(--purple); color: #fff; border: 0; border-radius: 999px; padding: 12px 28px; font-family: var(--display); font-size: 22px; min-height: 56px; }
 .primary:hover { background: var(--purple-deep); }
-.summary { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; margin-top: 8px; }
-.sum-row { border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; text-align: left; }
+.primary.green { background: var(--jong); } .primary.green:hover { background: #086b4d; }
+.secondary { background: #fff; color: var(--purple-deep); border: 2.5px solid var(--purple); border-radius: 999px; padding: 10px 24px; font-family: var(--display); font-size: 20px; min-height: 56px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.center { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.big-title { font-family: var(--display); font-size: clamp(28px, 5vw, 40px); color: var(--purple); margin: 0; line-height: 1.2; text-wrap: balance; }
+.lead { margin: 0; font-size: 17px; color: var(--muted); max-width: 60ch; }
+.lead b { color: var(--ink); }
+.names { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; width: 100%; }
+.name-field { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+.name-field label { font-weight: 700; font-size: 14px; }
+.name-field input { border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; font-size: 18px; min-height: 52px; background: #fff; color: var(--ink); }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; width: 100%; text-align: left; }
+.how div { border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; font-size: 15px; }
+.how b { display: block; font-family: var(--display); font-weight: 400; font-size: 18px; color: var(--purple-deep); }
+.cover { background: var(--ink); color: #fff; border-radius: 22px; padding: 36px 18px; }
+.cover .big-title { color: #fff; }
+.cover .lead { color: #e9e4ff; }
+.cover .lead b { color: #fff; }
+.result-roman { font-family: var(--latin); font-weight: 900; font-size: clamp(40px, 8vw, 64px); color: var(--purple); line-height: 1.1; overflow-wrap: anywhere; }
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; width: 100%; }
+.compare > div { border: 2.5px solid var(--line); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+.compare .ok { border-color: var(--jong); background: #f3fbf7; }
+.compare .no { border-color: var(--bad); background: var(--bad-tint); }
+.compare small { font-weight: 700; color: var(--muted); }
+.compare .v { font-family: var(--latin); font-weight: 900; font-size: 30px; overflow-wrap: anywhere; }
+.compare .v.ko { font-family: var(--display); font-weight: 400; }
+.compare .v.strike { text-decoration: line-through; text-decoration-thickness: 3px; text-decoration-color: var(--bad); color: var(--muted); font-size: 24px; }
+.answer { margin-top: 6px; display: flex; flex-direction: column; align-items: center; gap: 2px; background: #1d4ed8; color: #fff; border-radius: 16px; padding: 8px 22px 10px; box-shadow: 0 4px 0 #1e3a8a; }
+.answer-label { font-family: var(--display); font-size: 16px; letter-spacing: .1em; color: #dbe7ff; }
+.answer-v { font-family: var(--latin); font-weight: 900; font-size: clamp(36px, 6vw, 48px); line-height: 1.1; overflow-wrap: anywhere; }
+.answer-v.ko { font-family: var(--display); font-weight: 400; }
+.summary { width: 100%; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.sum-row { border: 2px solid var(--line); border-radius: 12px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .sum-row .k { font-family: var(--display); font-size: 20px; }
 .sum-row .e { font-family: var(--latin); font-weight: 800; color: var(--purple-deep); overflow-wrap: anywhere; }
-.sum-row .s { color: var(--amber); font-family: var(--display); }
-
-/* modal */
-.modal { position: fixed; inset: 0; background: rgba(43, 37, 64, .45); display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; overflow-y: auto; z-index: 10; }
-.sheet { background: var(--card); border-radius: 22px; width: 100%; max-width: 860px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
-.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.sheet h2, .side h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--purple); }
-.sheet h3, .side h3 { margin: 0 0 6px; font-family: var(--display); font-weight: 400; font-size: 19px; }
-.sheet .rule, .side .rule { margin: 0; font-size: 14px; color: var(--muted); }
+.sum-row .s { color: var(--amber); font-family: var(--display); white-space: nowrap; }
 
 /* hint sidebar */
 .side { position: fixed; top: 0; right: 0; bottom: 0; width: min(360px, 90vw); background: var(--card); border-left: 2px solid var(--line); box-shadow: -10px 0 30px rgba(43, 37, 64, .14); padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(20px + env(safe-area-inset-bottom, 0px)); overflow-y: auto; transform: translateX(105%); transition: transform .25s ease; z-index: 20; display: flex; flex-direction: column; gap: 14px; }
 .side.open { transform: none; }
 .side-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.side h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 24px; color: var(--purple); }
+.side h3 { margin: 0 0 6px; font-family: var(--display); font-weight: 400; font-size: 19px; }
+.side .rule { margin: 0; font-size: 14px; color: var(--muted); }
 .side section { padding: 8px; border-radius: 14px; border: 2px solid transparent; }
 .side section.now { border-color: var(--purple); background: var(--purple-tint); }
 .side-tab { position: fixed; right: 0; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; background: var(--purple); color: #fff; border: 0; border-radius: 14px 0 0 14px; padding: 18px 10px; font-family: var(--display); font-size: 20px; letter-spacing: .15em; z-index: 19; min-width: 44px; box-shadow: -4px 0 14px rgba(43, 37, 64, .18); }
-.side-tab:hover { background: var(--purple-deep); }
-.key .big.latin { font-family: var(--latin); font-weight: 900; font-size: 26px; }
-.key.jong { border-color: var(--jong); } .key.jong .big.latin { color: var(--jong); } .key.jong:hover { background: var(--jong-tint); }
-.key.cho .big.latin { color: var(--cho); } .key.jung .big.latin { color: var(--jung); }
-.part .solo { font-weight: 800; font-size: 17px; line-height: 1.25; }
-.part .solo.lat { font-family: var(--latin); font-weight: 900; }
-.syl.target { color: var(--purple-deep); }
 .tbl { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 6px; }
+.tbl.fin { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
 .cell { border: 2px solid; border-radius: 10px; text-align: center; padding: 4px 2px; }
 .cell b { display: block; font-size: 18px; }
 .cell span { font-family: var(--latin); font-weight: 900; font-size: 16px; }
 .cell.cho { border-color: var(--cho); background: var(--cho-tint); } .cell.cho span { color: var(--cho); }
 .cell.jung { border-color: var(--jung); background: var(--jung-tint); } .cell.jung span { color: var(--jung); }
-.tbl.fin { grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); }
 .cell.jong { border-color: var(--jong); background: var(--jong-tint); } .cell.jong span { color: var(--jong); }
+
+.modal { position: fixed; inset: 0; background: rgba(43, 37, 64, .45); display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; overflow-y: auto; z-index: 30; }
+.sheet { background: var(--card); border-radius: 22px; width: 100%; max-width: 720px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.sheet h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 26px; color: var(--purple); }
+.sheet .rule { margin: 0; font-size: 14px; color: var(--muted); }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .qr-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .qr-row input { flex: 1 1 260px; min-width: 0; border: 2px solid var(--line); border-radius: 12px; padding: 10px 12px; font: inherit; min-height: 48px; background: #fff; color: var(--ink); }
 #qrBox { align-self: center; background: #fff; padding: 16px; border-radius: 16px; border: 2px solid var(--line); }
@@ -201,7 +222,7 @@ footer button { background: none; border: 0; color: var(--purple-deep); font-wei
   .slot { width: 112px; }
   .syl { font-size: 46px; height: 50px; }
   .tab span { display: none; }
-  .meter { width: 90px; }
+  .roles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 </style>
@@ -210,37 +231,19 @@ footer button { background: none; border: 0; color: var(--purple-deep); font-wei
 
 <div class="wrap">
   <header class="top">
-    <div class="brand">
-      <span class="ribbon">활동 3</span>
-      <h1>초중종 로마자 게임</h1>
-    </div>
-    <div class="top-actions">
-      <button class="ghost" id="openTable" type="button" aria-controls="side" aria-expanded="false">힌트 보기</button>
-    </div>
+    <div class="brand"><span class="ribbon">활동 3 · 모둠 게임</span><h1>초중종 로마자 게임</h1></div>
+    <button class="ghost" id="openTable" type="button" aria-controls="side" aria-expanded="false">힌트 보기</button>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="게임 단계">
-    <button class="tab" role="tab" id="tab-s1" data-mode="s1" aria-selected="true" type="button"><b>1단계</b><span>한글 → 로마자</span></button>
-    <button class="tab" role="tab" id="tab-s2" data-mode="s2" aria-selected="false" type="button"><b>2단계</b><span>로마자 → 한글</span></button>
-    <button class="tab" role="tab" id="tab-free" data-mode="free" aria-selected="false" type="button"><b>자유 만들기</b><span>내 이름, 우리 동네</span></button>
+  <nav class="tabs" role="tablist" aria-label="게임 고르기">
+        <button class="tab" role="tab" data-mode="mission" aria-selected="true" type="button"><b>암호 미션</b><span>2명 대 2명 · 쓰고 풀기</span></button>
+    <button class="tab" role="tab" data-mode="free" aria-selected="false" type="button"><b>자유 만들기</b><span>내 이름, 우리 동네</span></button>
   </nav>
 
-  <div class="bar" id="bar">
-    <div class="chips" id="lvTrack" aria-label="문제 난이도 순서"></div>
-    <div class="progress" aria-live="polite">
-      <span id="count">1 / 10</span>
-      <span class="meter"><i id="meter" style="width:0%"></i></span>
-      <span class="stars" id="stars">★ 0</span>
-    </div>
-  </div>
-
   <main class="stage" id="stage"></main>
-  <section class="pad" id="pad" aria-label="자판"></section>
+  <section class="pad" id="pad" aria-label="자판" hidden></section>
 
-  <footer>
-    초성·중성·종성을 차례대로 누르면 글자가 만들어져요.
-    <button type="button" id="openQr">선생님용 QR 코드 만들기</button>
-  </footer>
+  <footer>태블릿 한 대를 모둠이 함께 써요. <button type="button" id="openQr">선생님용 QR 코드 만들기</button></footer>
 </div>
 
 <button class="side-tab" id="sideTab" type="button" aria-controls="side" aria-expanded="false">힌트</button>
@@ -250,18 +253,18 @@ footer button { background: none; border: 0; color: var(--purple-deep); font-wei
   <section id="hint-c"><h3>첫소리 자음 (초성)</h3><div class="tbl" id="tblCho"></div></section>
   <section id="hint-v"><h3>모음 (중성)</h3><div class="tbl" id="tblJung"></div></section>
   <section id="hint-f"><h3>받침소리 자음 (종성)</h3><div class="tbl fin" id="tblJong"></div></section>
-  <p class="rule">ㅇ이 첫소리에 오면 소리가 없어서 쓰지 않아요. 받침 ㄹ 다음에 ㄹ이 오면 ll로 써요 (한라산 → Hallasan). 지명과 사람 이름은 첫 글자를 대문자로 써요.</p>
+  <p class="rule">ㅇ이 첫소리에 오면 소리가 없어서 쓰지 않아요. 받침 ㄹ 다음에 ㄹ이 오면 ll로 써요 (한라산 → Hallasan). 로마자는 소리 나는 대로 써요. 지명과 사람 이름은 첫 글자를 대문자로 써요.</p>
 </aside>
 
 <div class="modal" id="qrModal" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="qrTitle">
     <div class="sheet-head"><h2 id="qrTitle">학생 접속용 QR 코드</h2><button class="ghost" type="button" data-close>닫기</button></div>
-    <p class="rule">이 게임의 공유 링크를 붙여 넣으면 QR 코드가 크게 나타나요. 전자칠판에 띄워 태블릿으로 찍게 하세요.</p>
-    <form class="qr-row" id="qrForm">
-      <label for="qrUrl" class="rule" style="flex-basis:100%">공유 링크</label>
-      <input id="qrUrl" type="url" placeholder="https://claude.ai/..." autocomplete="off">
-      <button class="primary" type="submit" style="font-size:18px">QR 만들기</button>
-    </form>
+    <p class="rule">이 게임의 주소를 붙여 넣으면 QR 코드가 크게 나타나요.</p>
+    <div class="qr-row" id="qrForm">
+      <label for="qrUrl" class="rule" style="flex-basis:100%">게임 주소</label>
+      <input id="qrUrl" type="url" placeholder="https://..." autocomplete="off">
+      <button class="primary" type="button" id="qrGo" style="font-size:18px">QR 만들기</button>
+    </div>
     <div id="qrBox"></div>
     <p class="rule" id="qrMsg"></p>
   </div>
@@ -270,36 +273,28 @@ footer button { background: none; border: 0; color: var(--purple-deep); font-wei
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 (() => {
-  // ---------- Hangul tables ----------
+  // ---------- 한글·로마자 표 ----------
   const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
   const JUNG = ['ㅏ','ㅐ','ㅑ','ㅒ','ㅓ','ㅔ','ㅕ','ㅖ','ㅗ','ㅘ','ㅙ','ㅚ','ㅛ','ㅜ','ㅝ','ㅞ','ㅟ','ㅠ','ㅡ','ㅢ','ㅣ'];
   const JONG = ['','ㄱ','ㄲ','ㄳ','ㄴ','ㄵ','ㄶ','ㄷ','ㄹ','ㄺ','ㄻ','ㄼ','ㄽ','ㄾ','ㄿ','ㅀ','ㅁ','ㅂ','ㅄ','ㅅ','ㅆ','ㅇ','ㅈ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
   const CHO_R = { 'ㄱ':'g','ㄲ':'kk','ㅋ':'k','ㄷ':'d','ㄸ':'tt','ㅌ':'t','ㅂ':'b','ㅃ':'pp','ㅍ':'p','ㅈ':'j','ㅉ':'jj','ㅊ':'ch','ㅅ':'s','ㅆ':'ss','ㅎ':'h','ㄴ':'n','ㅁ':'m','ㄹ':'r','ㅇ':'' };
   const JUNG_R = { 'ㅏ':'a','ㅓ':'eo','ㅗ':'o','ㅜ':'u','ㅡ':'eu','ㅣ':'i','ㅐ':'ae','ㅔ':'e','ㅚ':'oe','ㅟ':'wi','ㅑ':'ya','ㅕ':'yeo','ㅛ':'yo','ㅠ':'yu','ㅒ':'yae','ㅖ':'ye','ㅘ':'wa','ㅙ':'wae','ㅝ':'wo','ㅞ':'we','ㅢ':'ui' };
   const JONG_GROUPS = [
-    { r: 'k', name: 'ㄱ받침소리', keys: ['ㄱ','ㅋ'] },
-    { r: 't', name: 'ㄷ받침소리', keys: ['ㄷ','ㅌ','ㅈ','ㅊ','ㅅ','ㅆ'] },
-    { r: 'p', name: 'ㅂ받침소리', keys: ['ㅂ','ㅍ'] },
-    { r: 'n', name: '', keys: ['ㄴ'] },
-    { r: 'm', name: '', keys: ['ㅁ'] },
-    { r: 'ng', name: '', keys: ['ㅇ'] },
-    { r: 'l', name: '', keys: ['ㄹ'] },
+    { r: 'k', name: 'ㄱ받침소리', keys: ['ㄱ','ㅋ'] }, { r: 't', name: 'ㄷ받침소리', keys: ['ㄷ','ㅌ','ㅈ','ㅊ','ㅅ','ㅆ'] },
+    { r: 'p', name: 'ㅂ받침소리', keys: ['ㅂ','ㅍ'] }, { r: 'n', name: '', keys: ['ㄴ'] }, { r: 'm', name: '', keys: ['ㅁ'] },
+    { r: 'ng', name: '', keys: ['ㅇ'] }, { r: 'l', name: '', keys: ['ㄹ'] },
   ];
   const JONG_R = { '': '', 'ㄲ': 'k' };
   JONG_GROUPS.forEach(g => g.keys.forEach(k => { JONG_R[k] = g.r; }));
-  // keypad order follows the printed table
   const CHO_ORDER = ['ㄱ','ㄲ','ㅋ','ㄷ','ㄸ','ㅌ','ㅂ','ㅃ','ㅍ','ㅈ','ㅉ','ㅊ','ㅅ','ㅆ','ㅎ','ㄴ','ㅁ','ㄹ','ㅇ'];
   const JUNG_ORDER = ['ㅏ','ㅓ','ㅗ','ㅜ','ㅡ','ㅣ','ㅐ','ㅔ','ㅚ','ㅟ','ㅑ','ㅕ','ㅛ','ㅠ','ㅒ','ㅖ','ㅘ','ㅙ','ㅝ','ㅞ','ㅢ'];
+  const PART_NAME = { c: '초성', v: '중성', f: '종성' };
+  const PART_CLS = { c: 'cho', v: 'jung', f: 'jong' };
 
   const compose = (c, v, f) => String.fromCharCode(0xAC00 + (CHO.indexOf(c) * 21 + JUNG.indexOf(v)) * 28 + JONG.indexOf(f || ''));
-  const decompose = (ch) => {
-    const n = ch.charCodeAt(0) - 0xAC00;
-    return { c: CHO[Math.floor(n / 588)], v: JUNG[Math.floor((n % 588) / 28)], f: JONG[n % 28] };
-  };
-  // tokens: [{c,v,f}] or {space:true}
+  const decompose = (ch) => { const n = ch.charCodeAt(0) - 0xAC00; return { c: CHO[Math.floor(n / 588)], v: JUNG[Math.floor((n % 588) / 28)], f: JONG[n % 28] }; };
   const toTokens = (str) => [...str].map(ch => ch === ' ' ? { space: true } : decompose(ch));
   function romanParts(tokens) {
-    // returns per-token {c,v,f} roman strings; applies the ㄹㄹ → ll rule
     return tokens.map((t, i) => {
       if (t.space) return { space: true };
       const prev = tokens[i - 1];
@@ -315,451 +310,340 @@ footer button { background: none; border: 0; color: var(--purple-deep); font-wei
     return words.map(x => cap && x ? x[0].toUpperCase() + x.slice(1) : x).join(' ');
   }
 
-  // ---------- Words (5학년 수준) ----------
-  // [쓰는 글자, 소리 나는 대로(다르면), 종류, 뜻 힌트, 2단계에 사용]
+  // ---------- 낱말 ----------
+  // [쓰는 글자, 소리 나는 대로(다르면), 종류, 뜻 힌트]
   const RAW = [
-    ['바다','','낱말','파도가 치는 넓은 물',1], ['나무','','낱말','숲을 이루는 식물',1],
-    ['나비','','낱말','꽃을 찾아 날아다니는 곤충',1], ['사자','','낱말','동물의 왕',1],
-    ['하마','','낱말','입이 아주 큰 물가 동물',1], ['모자','','낱말','머리에 쓰는 것',1],
-    ['오이','','낱말','길쭉한 초록 채소',1], ['두부','','낱말','콩으로 만든 하얀 음식',1],
-    ['고구마','','낱말','땅속에서 자라는 달콤한 뿌리',1], ['거미','','낱말','거미줄을 치는 동물',1],
-    ['머리','','낱말','몸의 맨 위',1], ['지도','','낱말','땅의 모습을 줄여 그린 그림',1],
-    ['기차','','낱말','철길 위를 달리는 탈것',1], ['피아노','','낱말','건반을 누르는 악기',1],
-    ['아기','','낱말','갓 태어난 아이',1], ['구미','','지명','경상북도의 공업 도시',1],
-    ['마포','','지명','서울 한강 북쪽의 구',1],
-    ['청주','','지명','충청북도의 도청이 있는 도시',1], ['오창','','지명','우리 학교가 있는 동네',1],
-    ['서울','','지명','우리나라의 수도',1], ['부산','','지명','해운대가 있는 큰 항구 도시',1],
-    ['대구','','지명','경상북도 가운데의 큰 도시',1], ['인천','','지명','큰 국제공항이 있는 도시',1],
-    ['광주','','지명','전라도의 큰 도시',1], ['대전','','지명','과학의 도시',1],
-    ['울산','','지명','자동차와 배를 만드는 도시',1], ['제주','','지명','한라산이 있는 섬',1],
-    ['경주','','지명','신라의 수도였던 도시',1], ['전주','','지명','비빔밥과 한옥 마을로 유명한 도시',1],
-    ['독도','','지명','동해 가장 동쪽의 우리 섬',1], ['해운대','','지명','부산의 유명한 바닷가',1],
-    ['경복궁','','지명','서울에 있는 조선의 궁궐',1], ['백두산','','지명','우리 민족의 가장 높은 산',1],
-    ['충북','','지명','충청북도를 줄인 말',1], ['한라산','할라산','지명','제주도에 있는 산',1],
-    ['신라','실라','지명','경주를 수도로 한 옛 나라',1], ['강릉','강능','지명','경포대가 있는 동해안 도시',1],
-    ['설악산','서락산','지명','단풍이 아름다운 강원도의 산',1],
-    ['홍길동','홍 길동','이름','책 속의 의로운 도둑',1], ['장보고','장 보고','이름','바다를 지킨 신라의 장군',1],
-    ['세종','','이름','한글을 만든 임금',1], ['유관순','유 관순','이름','3·1 운동의 독립운동가',1],
-    ['허준','허 준','이름','동의보감을 쓴 의원',1],
-    ['추석','','낱말','송편을 먹는 한가위',1], ['한복','','낱말','우리나라의 전통 옷',1],
-    ['김치','','낱말','배추로 담그는 반찬',1], ['비빔밥','','낱말','나물을 넣고 비벼 먹는 밥',1],
-    ['불고기','','낱말','양념한 고기 요리',1], ['떡볶이','떡보끼','낱말','빨간 양념의 떡 요리',0],
-    ['윷놀이','윤노리','낱말','윷을 던지는 놀이',1], ['한옥','하녹','낱말','우리나라의 전통 집',1],
-    ['민화','','낱말','옛사람들이 그린 그림',1], ['씨름','','낱말','샅바를 잡고 하는 전통 운동',1],
-    ['학교','','낱말','우리가 공부하는 곳',1], ['친구','','낱말','함께 노는 사람',1],
-    ['사과','','낱말','빨갛고 동그란 과일',1], ['의자','','낱말','앉을 때 쓰는 가구',1],
-    ['연필','','낱말','글씨를 쓰는 도구',1], ['토끼','','낱말','귀가 긴 동물',1],
-    ['코끼리','','낱말','코가 긴 동물',1], ['빵','','낱말','밀가루로 구운 음식',1],
-    ['포도','','낱말','송이로 열리는 보라색 과일',1], ['찌개','','낱말','국물이 자작한 요리',1],
-    ['참외','차뫼','낱말','노란 여름 과일',1], ['원숭이','','낱말','나무를 잘 타는 동물',1],
-    ['스웨터','','낱말','털실로 짠 윗옷',1], ['왜가리','','낱말','다리가 긴 물새',1],
-    ['의사','','낱말','아픈 사람을 고쳐 주는 사람',1], ['효자','','낱말','부모님을 잘 모시는 아들',1],
-    ['유리','','낱말','창문에 끼우는 투명한 것',1], ['여우','','낱말','꼬리가 탐스러운 동물',1],
-    ['야구','','낱말','방망이로 공을 치는 운동',1], ['예절','','낱말','지켜야 할 바른 몸가짐',1],
-    ['얘기','','낱말','이야기를 줄인 말',1], ['귀','','낱말','소리를 듣는 몸의 부분',1],
-    ['부엌','','낱말','음식을 만드는 곳',1], ['꽃','','낱말','봄에 피어나는 것',1],
-    ['밭','','낱말','채소를 기르는 땅',1], ['낮','','낱말','해가 떠 있는 동안',1],
-    ['옷','','낱말','몸에 입는 것',1], ['떡','','낱말','쌀로 만든 간식',1],
-    ['밥','','낱말','쌀로 지은 음식',1], ['앞','','낱말','뒤의 반대',1],
-    ['잣','','낱말','소나무에 열리는 고소한 열매',1], ['못','','낱말','망치로 박는 것',1],
-    ['꿈','','낱말','잘 때 꾸는 것',1], ['짱','','낱말','최고라는 뜻의 말',1],
-    ['알','','낱말','새가 낳는 것',1], ['별','','낱말','밤하늘에 반짝이는 것',1],
-    ['곰','','낱말','겨울잠을 자는 동물',1],
+    ['바다','','낱말','파도가 치는 넓은 물'], ['나무','','낱말','숲을 이루는 식물'], ['나비','','낱말','꽃을 찾아 날아다니는 곤충'],
+    ['사자','','낱말','동물의 왕'], ['하마','','낱말','입이 아주 큰 물가 동물'], ['모자','','낱말','머리에 쓰는 것'],
+    ['오이','','낱말','길쭉한 초록 채소'], ['두부','','낱말','콩으로 만든 하얀 음식'], ['고구마','','낱말','땅속에서 자라는 달콤한 뿌리'],
+    ['거미','','낱말','거미줄을 치는 동물'], ['지도','','낱말','땅의 모습을 줄여 그린 그림'], ['기차','','낱말','철길 위를 달리는 탈것'],
+    ['피아노','','낱말','건반을 누르는 악기'],     ['토끼','','낱말','귀가 긴 동물'], ['코끼리','','낱말','코가 긴 동물'], ['포도','','낱말','송이로 열리는 보라색 과일'],
+    ['청주','','지명','충청북도의 도청이 있는 도시'], ['오창','','지명','우리 학교가 있는 동네'],         ['충북','','지명','충청북도를 줄인 말'],
+    ['추석','','낱말','송편을 먹는 한가위'], ['한복','','낱말','우리나라의 전통 옷'], ['김치','','낱말','배추로 담그는 반찬'],
+    ['비빔밥','','낱말','나물을 넣고 비벼 먹는 밥'], ['불고기','','낱말','양념한 고기 요리'], ['친구','','낱말','함께 노는 사람'],
+    ['빵','','낱말','밀가루로 구운 음식'], ['꽃','','낱말','봄에 피어나는 것'], ['밥','','낱말','쌀로 지은 음식'],
+    ['곰','','낱말','겨울잠을 자는 동물'], ['꿈','','낱말','잘 때 꾸는 것'], ['떡','','낱말','쌀로 만든 간식'],
+            ['세종','','이름','한글을 만든 임금'], ['씨름','','낱말','샅바를 잡고 하는 전통 운동'],
+    ['학교','','낱말','우리가 공부하는 곳'], ['연필','','낱말','글씨를 쓰는 도구'], ['찌개','','낱말','국물이 자작한 요리'],
+    ['유리','','낱말','창문에 끼우는 투명한 것'], ['여우','','낱말','꼬리가 탐스러운 동물'], ['야구','','낱말','방망이로 공을 치는 운동'],
+    ['별','','낱말','밤하늘에 반짝이는 것'],
+    ['민화','','낱말','옛사람들이 그린 그림'], ['사과','','낱말','빨갛고 동그란 과일'],
+    ['의자','','낱말','앉을 때 쓰는 가구'], ['원숭이','','낱말','나무를 잘 타는 동물'], ['왜가리','','낱말','다리가 긴 물새'],
+    ['의사','','낱말','아픈 사람을 고쳐 주는 사람'], ['예절','','낱말','지켜야 할 바른 몸가짐'], ['귀','','낱말','소리를 듣는 몸의 부분'],
+        ['윷놀이','윤노리','낱말','윷을 던지는 놀이'], ['한옥','하녹','낱말','우리나라의 전통 집'],
+    ['참외','차뫼','낱말','노란 여름 과일'],
+    ['충주','','지명','사과와 충주호로 유명한 도시'], ['제천','','지명','약초와 청풍호로 유명한 도시'],
+    ['보은','','지명','속리산 법주사가 있는 고장'], ['옥천','','지명','시인 정지용의 고향'],
+    ['영동','','지명','포도와 국악으로 유명한 고장'], ['증평','','지명','충북에서 가장 작은 군'],
+    ['진천','','지명','농다리가 있는 고장'], ['괴산','','지명','산막이옛길이 있는 고장'],
+    ['음성','','지명','품바 축제가 열리는 고장'], ['단양','','지명','도담삼봉이 있는 고장'],
+    ['오송','','지명','KTX 오송역이 있는 동네'],
   ];
   const MID_V = ['ㅡ','ㅐ','ㅔ','ㅑ','ㅕ','ㅛ','ㅠ'];
   const HARD_V = ['ㅒ','ㅖ','ㅘ','ㅙ','ㅚ','ㅝ','ㅞ','ㅟ','ㅢ'];
-  const LV_TEXT = { 1: '받침 없는 말 · ㅏ ㅓ ㅗ ㅜ ㅣ', 2: '받침이 있는 말', 3: 'ㅡ ㅐ ㅔ ㅑ ㅕ ㅛ ㅠ 모음이 나와요', 4: 'ㅘ ㅚ ㅢ 같은 어려운 모음, 소리가 바뀌는 말' };
-  const WORDS = RAW.map(([w, p, cat, hint, s2]) => {
+  const WORDS = RAW.map(([w, p, cat, hint]) => {
     const pron = p || w;
     const tokens = toTokens(pron);
     const cap = cat !== '낱말';
-    const soundDiff = !!p && p.replace(/ /g, '') !== w;
-    const syl = tokens.filter(t => !t.space);
-    // 레벨: 1 받침 없음+기본 모음 → 2 받침 → 3 ㅡㅐㅔㅑㅕㅛㅠ → 4 겹모음·소리 바뀜
-    const lv = (soundDiff || syl.some(t => HARD_V.includes(t.v))) ? 4
-      : syl.some(t => MID_V.includes(t.v)) ? 3
-      : syl.some(t => t.f) ? 2 : 1;
-    return { w, pron, cat, hint, s2: !!s2, tokens, wTokens: soundDiff ? toTokens(w) : tokens, cap, roman: romanize(tokens, cap), soundDiff, lv };
+    const soundDiff = !!p;
+    const lv = (soundDiff || tokens.some(t => HARD_V.includes(t.v))) ? 4 : tokens.some(t => MID_V.includes(t.v)) ? 3 : tokens.some(t => t.f) ? 2 : 1;
+    return { w, pron, cat, hint, tokens, cap, roman: romanize(tokens, cap), soundDiff, lv };
   });
-  // 2단계 정답은 원래 쓰는 글자(한라산), 1단계는 소리 나는 대로(할라산)
-  const ans = (q) => S.mode === 's2' ? q.wTokens : q.tokens;
-  const TRACK = ['레벨 1', '레벨 2', '레벨 3', '레벨 4', '소리 나는 대로'];
+  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const pick1 = (f, used) => shuffle(WORDS.filter(x => f(x) && !used.has(x.w)))[0];
+  // 모든 모둠이 같은 순서로 풀도록 고정 (쉬운 것 → 어려운 것)
+  const MISSION_SETS = [['나비', '청주', '김치', '제천'], ['오이', '오창', '한복', '단양']];
+  const missionList = (set) => MISSION_SETS[set].map(w => WORDS.find(x => x.w === w));
+  // 미션 시간 재기
+  const fmt = (ms) => { const s = Math.floor(ms / 1000); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+  let clock = null;
+  function startClock() { stopClock(); clock = setInterval(() => { const t = $('mTimer'); if (t && S.mission) t.textContent = fmt(Date.now() - S.mission.t0); }, 250); }
+  function stopClock() { if (clock) clearInterval(clock); clock = null; }
 
-  // ---------- State ----------
-  const S = { mode: 's1', lv: 'auto', list: [], idx: 0, stars: 0, log: [], slots: [], cur: 0, step: 'c', mistakes: 0, done: false, wrongParts: null, cap: true, lock: false, msg: '', msgType: '' };
+  // ---------- 글자 만들기(공통) ----------
+  const emptySlot = () => ({ c: null, v: null, f: null });
+  const newBuilder = (n) => ({ slots: Array.from({ length: n }, emptySlot), cur: 0, step: 'c' });
+  function nextEmpty(B) {
+    for (let i = 0; i < B.slots.length; i++) for (const k of ['c', 'v', 'f']) if (B.slots[i][k] === null) { B.cur = i; B.step = k; return true; }
+    B.cur = B.slots.length; B.step = null; return false;
+  }
+  function undoPart(B) {
+    const order = []; B.slots.forEach((s, i) => ['c', 'v', 'f'].forEach(k => order.push([i, k])));
+    let pos = B.step ? order.findIndex(([i, k]) => i === B.cur && k === B.step) : order.length;
+    for (let p = pos - 1; p >= 0; p--) { const [i, k] = order[p]; if (B.slots[i][k] !== null) { B.slots[i][k] = null; nextEmpty(B); return true; } }
+    return false;
+  }
+
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
-  const shuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const S = { mode: 'mission', mission: null, free: null };
 
-  function newRound() {
-    const pool = WORDS.filter(x => S.mode === 's1' || x.s2);
-    const one = (f) => shuffle(pool.filter(f))[0];
-    // 5문제, 쉬운 것부터: 레벨1 → 레벨2 → 레벨3 → 레벨4(어려운 모음) → 레벨4(소리 나는 대로, 마지막에 꼭)
-    S.list = [
-      one(x => x.lv === 1), one(x => x.lv === 2), one(x => x.lv === 3),
-      one(x => x.lv === 4 && !x.soundDiff), one(x => x.soundDiff),
-    ].filter(Boolean);
-    S.idx = 0; S.stars = 0; S.log = [];
-    loadWord();
-  }
-  function loadWord() {
-    const q = S.list[S.idx];
-    S.slots = ans(q).map(t => t.space ? { space: true } : { c: null, v: null, f: null, ok: false });
-    S.cur = S.slots.findIndex(s => !s.space);
-    S.step = 'c'; S.mistakes = 0; S.done = false; S.wrongParts = null; S.lock = false;
-    S.msg = S.mode === 's1' ? '첫 글자의 초성부터 눌러 보세요.' : '로마자를 읽고 한글 글자를 만들어 보세요.'; S.msgType = '';
-    const prev = S.list[S.idx - 1];
-    if (prev && prev.lv < q.lv) { S.msg = `레벨 ${q.lv}로 올라왔어요! ${LV_TEXT[q.lv]}`; S.msgType = 'good'; }
-    render();
-  }
-  function startFree() {
-    S.slots = [{ c: null, v: null, f: null }]; S.cur = 0; S.step = 'c'; S.done = false; S.wrongParts = null; S.lock = false;
-    S.msg = '만들고 싶은 낱말의 첫 글자 초성을 눌러 보세요.'; S.msgType = '';
-    render();
-  }
-  function setMode(m) {
-    S.mode = m;
-    document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.mode === m)));
-    $('bar').hidden = m === 'free';
-    if (m === 'free') startFree(); else newRound();
-  }
-
-  // ---------- Input ----------
-  function pick(kind, val) {
-    if (S.lock || S.done) return;
-    const s = S.slots[S.cur];
-    if (!s || kind !== S.step) return;
-    s[kind] = val;
-    S.wrongParts = null;
-    if (kind === 'c') { S.step = 'v'; S.msg = '이번에는 중성(모음)을 골라요.'; S.msgType = ''; }
-    else if (kind === 'v') { S.step = 'f'; S.msg = '종성(받침)을 고르거나 「받침 없음」을 눌러요.'; S.msgType = ''; }
-    else { finishSyllable(); return; }
-    render();
-  }
-  function finishSyllable() {
-    const s = S.slots[S.cur];
-    if (S.mode === 'free') {
-      S.slots.push({ c: null, v: null, f: null });
-      S.cur = S.slots.length - 1; S.step = 'c';
-      S.msg = '다음 글자를 만들거나, 띄어 쓰려면 「띄어쓰기」를 눌러요.'; S.msgType = '';
-      render(); return;
-    }
-    const q = S.list[S.idx];
-    const t = ans(q)[S.cur];
-    const wrong = [];
-    if (s.c !== t.c) wrong.push('c');
-    if (s.v !== t.v) wrong.push('v');
-    // 1단계는 받침을 로마자 묶음(k, t, p…)으로 고르므로 소리로 비교
-    const fOk = S.mode === 's1' ? (JONG_R[s.f || ''] ?? '') === (JONG_R[t.f || ''] ?? '') : (s.f || '') === (t.f || '');
-    if (!fOk) wrong.push('f');
-    if (!wrong.length) {
-      s.ok = true;
-      let next = S.cur + 1;
-      while (next < S.slots.length && S.slots[next].space) next++;
-      if (next >= S.slots.length) { solved(); return; }
-      S.cur = next; S.step = 'c';
-      S.msg = '맞았어요! 다음 글자로 넘어가요.'; S.msgType = 'good';
-      render(); return;
-    }
-    S.mistakes++;
-    S.wrongParts = wrong;
-    const names = { c: '초성', v: '중성', f: '종성' };
-    const made = compose(s.c, s.v, s.f);
-    if (S.mode === 's2') {
-      const madeR = romanize([{ c: s.c, v: s.v, f: s.f }]);
-      const needR = romanize([t]);
-      const p = q.tokens[S.cur];
-      S.msg = q.soundDiff && s.c === p.c && s.v === p.v && (s.f || '') === (p.f || '')
-        ? `「${made}」는 소리 나는 대로예요. 로마자는 소리대로 쓰지만, 한글은 원래 글자로 써야 해요!`
-        : madeR === needR
-        ? `「${made}」도 ${madeR}(으)로 써요. 그런데 받침이 달라요. 뜻 힌트를 보고 실제 낱말을 떠올려 봐요.`
-        : `「${made}」는 ${madeR}(이)에요. ${wrong.map(k => names[k]).join(', ')}을(를) 다시 생각해 봐요.`;
-    } else {
-      S.msg = `${wrong.map(k => names[k]).join(', ')}이(가) 달라요. 다시 해 봐요!`;
-    }
-    S.msgType = 'bad';
-    S.lock = true;
-    render();
-    setTimeout(() => {
-      s.c = s.v = s.f = null; S.step = 'c'; S.lock = false; S.wrongParts = null;
-      render();
-    }, 1500);
-  }
-  function solved() {
-    const q = S.list[S.idx];
-    const star = S.mistakes === 0;
-    if (star) S.stars++;
-    S.log.push({ w: q.w, roman: q.roman, star });
-    S.done = true;
-    render();
-  }
-  function undo() {
-    if (S.lock || S.done) return;
-    const s = S.slots[S.cur];
-    if (S.step === 'f') { s.v = null; S.step = 'v'; }
-    else if (S.step === 'v') { s.c = null; S.step = 'c'; }
-    else if (S.mode === 'free' && S.cur > 0) {
-      S.slots.pop(); S.cur = S.slots.length - 1;
-      const p = S.slots[S.cur];
-      if (p.space) { S.slots.pop(); S.slots.push({ c: null, v: null, f: null }); S.cur = S.slots.length - 1; S.step = 'c'; }
-      else { p.f = null; S.step = 'f'; }
-    }
-    S.wrongParts = null; S.msg = ''; S.msgType = '';
-    render();
-  }
-  function resetWord() { if (S.mode === 'free') startFree(); else loadWord(); }
-  function next() {
-    S.idx++;
-    if (S.idx >= S.list.length) { renderEnd(); return; }
-    loadWord();
-  }
-  function addSpace() {
-    if (S.mode !== 'free' || S.step !== 'c') return;
-    const last = S.slots[S.cur - 1];
-    if (!last || last.space) return;
-    S.slots.splice(S.cur, 0, { space: true });
-    S.cur++;
-    render();
-  }
-
-  // ---------- Render ----------
-  const partHtml = (kind, jamo, roman, miss) => {
-    const cls = { c: 'cho', v: 'jung', f: 'jong' }[kind];
-    const label = { c: '초', v: '중', f: '종' }[kind];
+  // ---------- 화면 조각 ----------
+  // show: 'roman' 로마자만, 'korean' 한글만, 'both' 둘 다
+  function partHtml(kind, jamo, roman, show, o = {}) {
+    const cls = PART_CLS[kind]; const label = { c: '초', v: '중', f: '종' }[kind];
     if (jamo === null || jamo === undefined) return `<div class="part ${cls} blank"><small>${label}</small><span class="j">&nbsp;</span></div>`;
     const j = jamo === '' ? '없음' : jamo;
     const r = roman === '' ? (jamo === '' ? '없음' : '소리X') : roman;
-    // 1단계는 로마자만, 2단계는 한글만 보여 줘서 답이 드러나지 않게 함
-    const body = S.mode === 's1' ? `<span class="solo${roman ? ' lat' : ''}">${esc(r)}</span>`
-      : S.mode === 's2' ? `<span class="solo">${esc(j)}</span>`
+    const body = show === 'roman' ? `<span class="solo${roman ? ' lat' : ''}">${esc(r)}</span>`
+      : show === 'korean' ? `<span class="solo">${esc(j)}</span>`
       : `<span class="j">${esc(j)}</span><span class="r">${esc(r === '없음' ? '–' : r)}</span>`;
-    return `<div class="part ${cls}${miss ? ' miss' : ''}"><small>${label}</small>${body}</div>`;
-  };
-  function slotsHtml() {
-    const tokens = S.slots.map(s => s.space ? { space: true } : { c: s.c, v: s.v, f: s.f });
-    const rp = romanParts(tokens);
-    return S.slots.map((s, i) => {
-      if (s.space) return '<div class="space" aria-hidden="true"></div>';
-      const full = s.c && s.v && s.f !== null && s.f !== undefined;
-      let syl = full ? compose(s.c, s.v, s.f) : (s.c && s.v ? compose(s.c, s.v, '') : (s.c || '?'));
+    if (o.tap) return `<button type="button" class="part ${cls}${o.miss ? ' miss' : ''}" data-fix="${o.i}:${kind}" aria-label="${label}성 고치기">${`<small>${label}</small>`}${body}</button>`;
+    return `<div class="part ${cls}${o.miss ? ' miss' : ''}"><small>${label}</small>${body}</div>`;
+  }
+  function slotsHtml(B, o) {
+    const rp = romanParts(B.slots.map(s => ({ c: s.c, v: s.v, f: s.f })));
+    return B.slots.map((s, i) => {
+      let syl = s.c && s.v ? compose(s.c, s.v, s.f || '') : (s.c || '?');
       let empty = !s.c;
-      if (S.mode === 's1') { const t = S.list[S.idx].tokens[i]; syl = compose(t.c, t.v, t.f); empty = false; }
-      const cur = i === S.cur && !S.done && !s.ok;
-      const wrong = cur && S.wrongParts;
-      const cls = ['slot', s.ok || (S.done && S.mode !== 'free') ? 'ok' : '', cur ? 'cur' : '', wrong ? 'wrong' : ''].join(' ');
-      const miss = (k) => wrong && S.wrongParts.includes(k);
-      return `<div class="${cls}">
-        <div class="syl${empty ? ' empty' : ''}${S.mode === 's1' ? ' target' : ''}">${esc(syl)}</div>
-        <div class="parts">${partHtml('c', s.c, rp[i].c, miss('c'))}${partHtml('v', s.v, rp[i].v, miss('v'))}${partHtml('f', s.f === undefined ? null : s.f, rp[i].f, miss('f'))}</div>
-      </div>`;
+      if (o.target) { const t = o.target[i]; syl = compose(t.c, t.v, t.f); empty = false; }
+      const cur = o.active && i === B.cur;
+      const miss = (k) => o.wrong && o.wrong.some(([wi, wk]) => wi === i && wk === k);
+      const anyMiss = o.wrong && o.wrong.some(([wi]) => wi === i);
+      const cls = ['slot', cur ? 'cur' : '', anyMiss ? 'wrong' : '', o.allOk ? 'ok' : ''].join(' ');
+      const p = (k) => partHtml(k, s[k], rp[i][k], o.show, { tap: o.tap && s[k] !== null, i, miss: miss(k) });
+      return `<div class="${cls}"><div class="syl${empty ? ' empty' : ''}${o.target ? ' target' : ''}">${esc(syl)}</div><div class="parts">${p('c')}${p('v')}${p('f')}</div></div>`;
     }).join('');
   }
-  function builtRomanHtml(cap) {
-    const tokens = S.slots.map(s => s.space ? { space: true } : { c: s.c, v: s.v, f: s.f });
-    const rp = romanParts(tokens);
+  function builtRoman(B, cap) {
+    const rp = romanParts(B.slots.map(s => ({ c: s.c, v: s.v, f: s.f })));
     let out = ''; let first = true;
     rp.forEach((p, i) => {
-      if (p.space) { out += ' '; first = true; return; }
-      const s = S.slots[i];
+      const s = B.slots[i];
       let c = s.c ? p.c : '', v = s.v ? p.v : '', f = s.f ? p.f : '';
-      if (cap && first) {
-        if (c) c = c[0].toUpperCase() + c.slice(1);
-        else if (v) v = v[0].toUpperCase() + v.slice(1);
-      }
+      if (cap && first) { if (c) c = c[0].toUpperCase() + c.slice(1); else if (v) v = v[0].toUpperCase() + v.slice(1); }
       if (s.c) first = false;
       out += `<span class="c">${esc(c)}</span><span class="v">${esc(v)}</span><span class="f">${esc(f)}</span>`;
     });
-    return out.trim() ? out : '<span class="cursor">_</span>';
+    return out.replace(/<span class="[cvf]"><\/span>/g, '') ? out : '<span class="cursor">_</span>';
   }
-  function builtKorean() {
-    return S.slots.map(s => s.space ? ' ' : (s.c && s.v ? compose(s.c, s.v, s.f || '') : (s.c || ''))).join('');
-  }
+  const romanOf = (B, cap) => romanize(B.slots.map(s => ({ c: s.c, v: s.v, f: s.f || '' })), cap);
+  const koreanOf = (B) => B.slots.map(s => s.c && s.v ? compose(s.c, s.v, s.f || '') : (s.c || '')).join('');
 
-  function render() {
-    const stage = $('stage');
-    if (S.mode === 'free') {
-      const cap = S.cap;
-      stage.innerHTML = `
-        <div class="question"><div class="q-main"><span class="q-tag">자유 만들기</span>
-          <div class="q-note">내 이름, 친구 이름, 우리 동네 이름을 로마자로 바꿔 보세요. 사람 이름은 성 다음에 「띄어쓰기」를 눌러요.</div>
-          <div class="q-note">성씨는 Kim, Lee, Park처럼 익숙한 표기를 쓰기도 해요.</div></div></div>
-        <div class="slots">${slotsHtml()}</div>
-        <div class="built"><span class="built-label">로마자</span><span class="built-out">${builtRomanHtml(cap)}</span></div>
-        <div class="free-tools">
-          <label class="toggle" for="capBox"><input type="checkbox" id="capBox" ${cap ? 'checked' : ''}> 첫 글자 대문자 (이름·지명)</label>
-        </div>
-        <div class="feedback ${S.msgType}" aria-live="polite">${esc(S.msg)}</div>`;
-      $('capBox').addEventListener('change', (e) => { S.cap = e.target.checked; render(); });
-      renderPad(); updateBar(); return;
-    }
-    const q = S.list[S.idx];
-    if (!q) { stage.innerHTML = '<p>문제가 없어요. 다른 종류를 골라 보세요.</p>'; $('pad').innerHTML = ''; return; }
-    let head;
-    if (S.mode === 's1') {
-      head = `<div class="question"><div class="q-main"><span class="q-tag">레벨 ${q.lv} · ${esc(q.cat)}</span>
-        <div class="q-word">${esc(q.w)}</div>
-        ${q.soundDiff ? `<div class="q-note">소리 나는 대로 <b>[${esc(q.pron.replace(/ /g, ''))}]</b>를 바꿔요.</div>` : ''}
-        ${q.cat === '이름' && q.pron.includes(' ') ? '<div class="q-note">성과 이름은 띄어 쓰고, 각각 대문자로 시작해요.</div>' : ''}
-        </div></div>`;
-    } else {
-      head = `<div class="question"><div class="q-main"><span class="q-tag">레벨 ${q.lv} · ${esc(q.cat)}</span>
-        <div class="q-roman">${esc(q.roman)}</div>
-        <div class="q-note">뜻 힌트: <b>${esc(q.hint)}</b> · ${ans(q).filter(t => !t.space).length}글자</div>
-        ${q.soundDiff ? '<div class="q-note"><b>소리 나는 대로</b> 쓴 로마자예요. 한글은 원래 쓰는 글자로 만들어요.</div>' : ''}</div>
-        <div class="q-side"><button class="small-btn" type="button" id="btnSkip">다음 문제로</button></div></div>`;
-    }
-    if (S.done) {
-      stage.innerHTML = `${head}
-        <div class="slots">${slotsHtml()}</div>
-        <div class="result">
-          <div class="from">${esc(q.w)}${q.soundDiff ? ` <span class="q-note">[${esc(q.pron.replace(/ /g, ''))}]</span>` : ''}</div>
-          <div class="to">${esc(q.roman)}</div>
-          <div class="feedback good">${S.mistakes === 0 ? '한 번에 성공! 별 하나 ★' : '성공! 다음에는 한 번에 해 봐요.'}</div>
-          <button class="primary" type="button" id="btnNext">${S.idx + 1 >= S.list.length ? '결과 보기' : '다음 문제'}</button>
-        </div>`;
-      $('btnNext').addEventListener('click', next);
-      $('btnNext').focus({ preventScroll: true });
-      $('pad').hidden = true;
-      updateBar(); return;
-    }
-    $('pad').hidden = false;
-    const built = S.mode === 's1'
-      ? `<div class="built"><span class="built-label">만들어진 로마자</span><span class="built-out">${builtRomanHtml(q.cap)}</span></div>`
-      : `<div class="built"><span class="built-label">만든 한글</span><span class="built-out ko">${esc(builtKorean()) || '<span class="cursor">_</span>'}</span></div>`;
-    stage.innerHTML = `${head}<div class="slots">${slotsHtml()}</div>${built}<div class="feedback ${S.msgType}" aria-live="polite">${esc(S.msg)}</div>`;
-    const skip = $('btnSkip');
-    if (skip) skip.addEventListener('click', () => { S.log.push({ w: q.w, roman: q.roman, star: false, skipped: true }); next(); });
-    renderPad(); updateBar();
-  }
-
-  function renderPad() {
-    const pad = $('pad');
-    pad.hidden = false;
-    const M = S.mode;
-    const stepCls = { c: 'cho', v: 'jung', f: 'jong' };
-    const steps = ['c', 'v', 'f'].map((k, i) => `${i ? '<span class="arrow" aria-hidden="true">→</span>' : ''}<span class="step ${stepCls[k]}${S.step === k ? ' on' : ''}">${['① 초성', '② 중성', '③ 종성'][i]}</span>`).join('');
-    const what = M === 's1' ? '로마자' : M === 's2' ? '한글' : '';
-    const hint = {
-      c: `<b>처음 소리(初聲)</b>: 글자의 맨 처음 자음을 ${what} 자판에서 골라요.`,
-      v: `<b>가운데 소리(中聲)</b>: 초성 다음에 나는 모음을 ${what} 자판에서 골라요.`,
-      f: M === 's2' ? '<b>끝소리(終聲)</b>: 받침을 골라요. 받침이 없으면 「받침 없음」을 눌러요.'
-        : '<b>끝소리(終聲)</b>: 받침을 골라요. 받침이 없으면 「받침 없음」을 눌러요.',
-    }[S.step] + (M === 'free' ? '' : ' 막히면 오른쪽 <b>힌트</b>를 열어 보세요.');
+  function keypadHtml(step, show, tools) {
     const silent = '<span class="silent">소리 없음</span>';
-    const keyBtn = (cls, k, j, r) => {
-      const lab = M === 's1' ? (r ? `<span class="big latin">${esc(r)}</span>` : silent)
-        : M === 's2' ? `<span class="big">${j}</span>`
+    const key = (cls, k, j, r) => {
+      const lab = show === 'roman' ? (r ? `<span class="big latin">${esc(r)}</span>` : silent)
+        : show === 'korean' ? `<span class="big">${j}</span>`
         : `<span class="big">${j}</span><span class="sm">${r ? esc(r) : silent}</span>`;
-      const aria = M === 's1' ? (r || '소리 없음') : M === 's2' ? j : `${j} ${r || '소리 없음'}`;
+      const aria = show === 'roman' ? (r || '소리 없음') : show === 'korean' ? j : `${j} ${r || '소리 없음'}`;
       return `<button class="key ${cls}" type="button" data-k="${k}" data-v="${j}" aria-label="${aria}">${lab}</button>`;
     };
-    let keys = '';
-    if (S.step === 'c') {
-      keys = `<div class="keys">${CHO_ORDER.map(j => keyBtn('cho', 'c', j, CHO_R[j])).join('')}</div>`;
-    } else if (S.step === 'v') {
-      keys = `<div class="keys">${JUNG_ORDER.map(j => keyBtn('jung', 'v', j, JUNG_R[j])).join('')}</div>`;
-    } else if (M === 's1') {
-      keys = `<div class="keys">${JONG_GROUPS.map(g => `<button class="key jong" type="button" data-k="f" data-v="${g.keys[0]}" aria-label="받침 ${g.r}"><span class="big latin">${g.r}</span></button>`).join('')}
-        <button class="key jong" type="button" data-k="f" data-v=""><span class="silent">받침 없음</span></button></div>`;
-    } else if (M === 's2') {
-      keys = `<div class="keys">${JONG_GROUPS.flatMap(g => g.keys).map(k => `<button class="key jong" type="button" data-k="f" data-v="${k}" aria-label="받침 ${k}"><span class="big">${k}</span></button>`).join('')}
-        <button class="key jong" type="button" data-k="f" data-v=""><span class="silent">받침 없음</span></button></div>`;
-    } else {
-      keys = `<div class="groups">${JONG_GROUPS.map(g => `<div class="group"><div class="group-head"><span class="gr">${g.r}</span><span class="gn">${g.name}</span></div>
-        <div class="group-keys">${g.keys.map(k => `<button class="gkey" type="button" data-k="f" data-v="${k}" aria-label="받침 ${k} ${g.r}">${k}</button>`).join('')}</div></div>`).join('')}
-        <button class="nojong" type="button" data-k="f" data-v="">받침 없음</button></div>`;
-    }
-    const tools = `<div class="pad-tools">
-      ${S.mode === 'free' ? '<button class="tool" type="button" id="btnSpace">띄어쓰기</button>' : ''}
-      <button class="tool" type="button" id="btnUndo">← 지우기</button>
-      <button class="tool" type="button" id="btnReset">${S.mode === 'free' ? '모두 지우기' : '처음부터'}</button></div>`;
-    pad.innerHTML = `<div class="pad-head"><div class="steps">${steps}</div>${tools}</div><p class="pad-hint">${hint}</p>${keys}`;
-    $('btnUndo').addEventListener('click', undo);
-    $('btnReset').addEventListener('click', resetWord);
-    const sp = $('btnSpace'); if (sp) sp.addEventListener('click', addSpace);
-    markHint();
+    let keys;
+    if (step === 'c') keys = CHO_ORDER.map(j => key('cho', 'c', j, CHO_R[j])).join('');
+    else if (step === 'v') keys = JUNG_ORDER.map(j => key('jung', 'v', j, JUNG_R[j])).join('');
+    else if (show === 'roman') keys = JONG_GROUPS.map(g => `<button class="key jong" type="button" data-k="f" data-v="${g.keys[0]}" aria-label="받침 ${g.r}"><span class="big latin">${g.r}</span></button>`).join('');
+    else keys = JONG_GROUPS.flatMap(g => g.keys).map(k => key('jong', 'f', k, JONG_R[k])).join('');
+    if (step === 'f') keys += `<button class="key jong" type="button" data-k="f" data-v=""><span class="silent">받침 없음</span></button>`;
+    const steps = ['c', 'v', 'f'].map((k, i) => `${i ? '<span class="arrow" aria-hidden="true">→</span>' : ''}<span class="step ${PART_CLS[k]}${step === k ? ' on' : ''}">${['① 초성', '② 중성', '③ 종성'][i]}</span>`).join('');
+    const hint = { c: '<b>처음 소리(初聲)</b>: 글자의 맨 처음 자음', v: '<b>가운데 소리(中聲)</b>: 초성 다음에 나는 모음', f: '<b>끝소리(終聲)</b>: 받침. 없으면 「받침 없음」' }[step];
+    return `<div class="pad-head"><div class="steps">${steps}</div><div class="tools">${tools || ''}</div></div><p class="pad-hint">${hint} · 막히면 오른쪽 <b>힌트</b>를 열어요.</p><div class="keys">${keys}</div>`;
   }
+  function showPad(html) { const pad = $('pad'); pad.hidden = !html; pad.innerHTML = html || ''; markHint(); }
+  let curStep = null;
+  function markHint() { ['c', 'v', 'f'].forEach(k => $('hint-' + k).classList.toggle('now', curStep === k)); }
 
-  // ---------- Hint sidebar ----------
-  function markHint() {
-    ['c', 'v', 'f'].forEach(k => $('hint-' + k).classList.toggle('now', S.step === k && !S.done));
-  }
-  function setSide(open) {
-    const side = $('side');
-    side.classList.toggle('open', open);
-    side.inert = !open;
-    $('sideTab').hidden = open;
-    ['sideTab', 'openTable'].forEach(id => $(id).setAttribute('aria-expanded', String(open)));
-    if (open) {
-      markHint();
-      const now = side.querySelector('section.now');
-      if (now) now.scrollIntoView({ block: 'nearest' });
-      $('closeSide').focus({ preventScroll: true });
-    }
-  }
-
-  function updateBar() {
-    if (S.mode === 'free') return;
-    const total = S.list.length || 1;
-    $('count').textContent = `${Math.min(S.idx + 1, total)} / ${total}`;
-    const doneCount = S.idx + (S.done ? 1 : 0);
-    $('meter').style.width = `${Math.round(doneCount / total * 100)}%`;
-    $('stars').textContent = `★ ${S.stars}`;
-    $('lvTrack').innerHTML = TRACK.slice(0, S.list.length).map((t, i) => {
-      const state = i < doneCount ? 'true' : 'false';
-      return `<span class="chip" aria-pressed="${i === S.idx && !S.done ? 'true' : 'false'}"${i < doneCount ? ' style="color:var(--jong);border-color:var(--jong)"' : ''}${i === S.idx ? ' aria-current="step"' : ''} data-done="${state}">${i < doneCount ? '✓ ' : ''}${t}</span>`;
-    }).join('');
-  }
-
-  function renderEnd() {
-    $('pad').hidden = true;
-    const total = S.list.length;
-    $('count').textContent = `${total} / ${total}`; $('meter').style.width = '100%'; $('stars').textContent = `★ ${S.stars}`;
-    $('stage').innerHTML = `<div class="result">
-      <div class="from">${S.mode === 's1' ? '1단계' : '2단계'} 끝!</div>
-      <div class="to">★ ${S.stars} / ${total}</div>
-      <div class="q-note">별은 한 번에 맞힌 문제예요. 바꾼 로마자를 공책에 적고 친구에게 발표해 보세요.</div>
-      <div class="summary">${S.log.map(l => `<div class="sum-row"><span class="k">${esc(l.w)}</span><span class="e">${l.skipped ? '건너뜀' : esc(l.roman)}</span><span class="s">${l.star ? '★' : ''}</span></div>`).join('')}</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:10px">
-        <button class="primary" type="button" id="btnAgain">다시 하기</button>
-        ${S.mode === 's1' ? '<button class="primary" type="button" id="btnTo2" style="background:var(--jong)">2단계로 가기</button>' : ''}
+  // ================= 암호 미션 =================
+  function missionSetup() {
+    curStep = null;
+    $('stage').innerHTML = `<div class="center">
+      <p class="big-title">외국인 친구 암호 미션</p>
+      <p class="lead">모둠을 <b>2명씩 가 팀, 나 팀</b>으로 나눠요. 한 팀은 몰래 본 낱말을 <b>로마자로만</b> 쓰고, 다른 팀은 그 로마자를 읽고 <b>한글 낱말</b>을 맞혀요. 정확히 써야 친구가 맞힐 수 있어요!</p>
+      <div class="how">
+        <div><b>① 출제팀</b>낱말을 몰래 보고 로마자로 바꿔요.</div>
+        <div><b>② 해독팀</b>로마자만 보고 한글 글자를 만들어요.</div>
+        <div><b>③ 확인</b>둘 다 맞으면 미션 성공! 한 문제마다 팀이 바뀌어요.</div>
+      </div>
+      <div id="missionForm" class="center" style="width:100%">
+        <button class="primary" type="button" id="missionGo">미션 시작</button>
       </div></div>`;
-    $('btnAgain').addEventListener('click', newRound);
-    const to2 = $('btnTo2'); if (to2) to2.addEventListener('click', () => setMode('s2'));
+    showPad('');
+    const goMission = () => {
+      const teams = ['가 팀', '나 팀'];
+      S.mission = { teams, set: 0, list: missionList(0), idx: 0, ok: 0, log: [] };
+      missionCover();
+    };
+    $('missionGo').addEventListener('click', goMission);
+    $('missionForm').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goMission(); } });
+  }
+  const writer = (M) => M.teams[M.idx % 2];
+  const reader = (M) => M.teams[(M.idx + 1) % 2];
+  function missionCover() {
+    const M = S.mission; curStep = null;
+    $('stage').innerHTML = `<div class="cover center">
+      <p class="lead">미션 ${M.idx + 1} / ${M.list.length}</p>
+      <p class="big-title">${esc(reader(M))}은(는) 화면을 보지 말아요!</p>
+      <p class="lead"><b>${esc(writer(M))}</b>만 태블릿을 들고 낱말을 몰래 확인해요.</p>
+      <button class="primary" type="button" id="mGo">출제팀 준비됐어요</button></div>`;
+    showPad('');
+    $('mGo').addEventListener('click', () => { M.B = newBuilder(M.list[M.idx].tokens.length); nextEmpty(M.B); M.phase = 'write'; M.t0 = Date.now(); startClock(); missionRender(); });
+  }
+  function missionRender() {
+    const M = S.mission; const q = M.list[M.idx]; const B = M.B;
+    curStep = B.step;
+    const status = `<div class="status"><div class="left"><span class="pill strong">미션 ${M.idx + 1} / ${M.list.length}</span><span class="pill">성공 ${M.ok}</span></div><span class="score" aria-label="걸린 시간"><span id="mTimer">${fmt(Date.now() - M.t0)}</span></span></div>`;
+    if (M.phase === 'write') {
+      const done = !B.step;
+      $('stage').innerHTML = `${status}<div class="turn c">출제팀 ${esc(writer(M))}<small>외국인 친구에게 알려 줄 낱말을 로마자로 바꿔요. 해독팀에게 보여 주지 마세요!</small></div>
+        <div class="question"><div class="q-main"><span class="q-tag">${esc(q.cat)} · 쉿! 비밀 낱말</span><div class="q-word">${esc(q.w)}</div><div class="q-note">${esc(q.hint)}</div></div></div>
+        <div class="slots">${slotsHtml(B, { target: q.tokens, show: 'roman', active: true })}</div>
+        <div class="built"><span class="built-label">우리 팀이 쓴 로마자</span><span class="built-out">${builtRoman(B, q.cap)}</span></div>
+        ${done ? '<div class="row"><button class="primary green" type="button" id="mPass">다 썼어요! 해독팀에게 넘기기</button></div>' : ''}`;
+      const tools = '<button class="tool" type="button" id="undoBtn">← 지우기</button>';
+      if (done) { showPad(`<div class="pad-head"><div class="tools">${tools}</div></div>`); $('mPass').addEventListener('click', missionPass); }
+      else showPad(keypadHtml(B.step, 'roman', tools));
+      $('undoBtn').addEventListener('click', () => { if (undoPart(B)) missionRender(); });
+      return;
+    }
+    if (M.phase === 'read') {
+      const R2 = M.R; const done = !R2.step;
+      curStep = R2.step;
+      $('stage').innerHTML = `${status}<div class="turn v">해독팀 ${esc(reader(M))}<small>출제팀이 쓴 로마자를 읽고, 어떤 우리말 낱말인지 한글 글자로 만들어요.</small></div>
+        <div class="question"><div class="q-main"><span class="q-tag">${esc(q.cat)} · ${q.tokens.length}글자</span><div class="q-roman">${esc(M.written)}</div></div></div>
+        <div class="slots">${slotsHtml(R2, { show: 'korean', active: true })}</div>
+        <div class="built"><span class="built-label">우리 팀이 푼 낱말</span><span class="built-out ko">${esc(koreanOf(R2)) || '<span class="cursor">_</span>'}</span></div>
+        ${done ? '<div class="row"><button class="primary green" type="button" id="mCheck">정답 확인!</button></div>' : ''}`;
+      const tools = '<button class="tool" type="button" id="undoBtn">← 지우기</button>';
+      if (done) { showPad(`<div class="pad-head"><div class="tools">${tools}</div></div>`); $('mCheck').addEventListener('click', missionCheck); }
+      else showPad(keypadHtml(R2.step, 'korean', tools));
+      $('undoBtn').addEventListener('click', () => { if (undoPart(R2)) missionRender(); });
+    }
+  }
+  function missionPass() {
+    const M = S.mission; const q = M.list[M.idx];
+    M.written = romanOf(M.B, q.cap);
+    curStep = null;
+    $('stage').innerHTML = `<div class="cover center">
+      <p class="big-title">태블릿을 ${esc(reader(M))}에게 넘겨요</p>
+      <p class="lead">비밀 낱말은 가려졌어요. 해독팀은 로마자만 보고 풀어요. 시간은 계속 흘러가요!</p>
+      <p class="big-title" id="mTimer">${fmt(Date.now() - M.t0)}</p>
+      <button class="primary" type="button" id="mRead">해독 시작</button></div>`;
+    showPad('');
+    $('mRead').addEventListener('click', () => { M.R = newBuilder(q.tokens.length); nextEmpty(M.R); M.phase = 'read'; missionRender(); });
+  }
+  function missionCheck() {
+    const M = S.mission; const q = M.list[M.idx];
+    const writeOk = M.written.toLowerCase() === q.roman.toLowerCase();
+    const answer = koreanOf(M.R);
+    const readOk = answer === q.w;
+    const success = writeOk && readOk;
+    if (success) M.ok++;
+    const took = Date.now() - M.t0; stopClock();
+    M.log.push({ w: q.w, roman: q.roman, success, took });
+    curStep = null;
+    const msg = success ? '미션 성공! 두 팀 모두 잘했어요.'
+      : !writeOk && readOk ? '해독팀이 맞혔지만, 출제팀 로마자에 고칠 곳이 있어요.'
+      : !writeOk ? '출제팀 로마자가 정답과 달라서 풀기 어려웠어요. 정답 로마자를 같이 확인해요.'
+      : '로마자는 정확했어요! 해독팀이 한 번 더 생각해 봐요.';
+    $('stage').innerHTML = `<div class="center">
+      <p class="big-title">${success ? '미션 성공!' : '아쉬워요!'}</p>
+      <p class="lead">비밀 낱말은 <b style="font-size:1.4em">${esc(q.w)}</b> 이었어요. 걸린 시간 <b style="font-size:1.4em">${fmt(took)}</b></p>
+      <div class="compare">
+        <div class="${writeOk ? 'ok' : 'no'}"><small>출제팀(${esc(writer(M))})이 쓴 로마자</small><span class="v${writeOk ? '' : ' strike'}">${esc(M.written)}</span>${writeOk ? '<small>정답이에요!</small>' : `<div class="answer"><span class="answer-label">정답</span><span class="answer-v">${esc(q.roman)}</span></div>`}</div>
+        <div class="${readOk ? 'ok' : 'no'}"><small>해독팀(${esc(reader(M))})이 푼 낱말</small><span class="v ko${readOk ? '' : ' strike'}">${esc(answer)}</span>${readOk ? '<small>정답이에요!</small>' : `<div class="answer"><span class="answer-label">정답</span><span class="answer-v ko">${esc(q.w)}</span></div>`}</div>
+      </div>
+      <div class="feedback ${success ? 'good' : 'bad'}">${msg}</div>
+      <button class="primary" type="button" id="mNext">${M.idx + 1 >= M.list.length ? '결과 보기' : '다음 미션 (팀 바꾸기)'}</button></div>`;
+    showPad('');
+    $('mNext').addEventListener('click', () => { M.idx++; if (M.idx >= M.list.length) missionEnd(); else missionCover(); });
+  }
+  function missionEnd() {
+    const M = S.mission;
+    $('stage').innerHTML = `<div class="center">
+      <p class="big-title">${M.set + 1}판 미션 끝!</p>
+      <div class="result-roman">${M.ok} / ${M.list.length} 성공</div>
+      <p class="lead">모두 걸린 시간 <b style="font-size:1.6em">${fmt(M.log.reduce((a, l) => a + l.took, 0))}</b></p>
+      <p class="lead">성공 개수와 시간을 선생님께 알려 주세요.</p>
+      <div class="summary">${M.log.map(l => `<div class="sum-row"><span class="k">${esc(l.w)}</span><span class="e">${esc(l.roman)}</span><span class="s">${l.success ? '성공' : '실패'} · ${fmt(l.took)}</span></div>`).join('')}</div>
+      <div class="row"><button class="primary" type="button" id="mAgain">${M.set === 0 ? '2판 도전하기' : '1판 다시 하기'}</button><button class="secondary" type="button" id="toFree">우리 이름 만들어 보기</button></div></div>`;
+    showPad('');
+    $('mAgain').addEventListener('click', () => { const set = (M.set + 1) % MISSION_SETS.length; S.mission = { ...M, set, list: missionList(set), idx: 0, ok: 0, log: [] }; missionCover(); });
+    $('toFree').addEventListener('click', () => setMode('free'));
   }
 
-  // ---------- Events ----------
-  $('pad').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-k]');
-    if (b) pick(b.dataset.k, b.dataset.v);
-  });
-  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode)));
+  // ================= 자유 만들기 =================
+  function freeStart() {
+    S.free = { B: { slots: [emptySlot()], cur: 0, step: 'c' }, spaces: new Set(), cap: true };
+    freeRender();
+  }
+  function freeTokens(F) { const out = []; F.B.slots.forEach((s, i) => { if (F.spaces.has(i)) out.push({ space: true }); out.push({ c: s.c, v: s.v, f: s.f || '' }); }); return out; }
+  function freeRender() {
+    const F = S.free; const B = F.B; curStep = B.step;
+    const complete = B.slots.filter(s => s.c && s.v && s.f !== null);
+    const toks = []; complete.forEach((s, i) => { if (F.spaces.has(i)) toks.push({ space: true }); toks.push({ c: s.c, v: s.v, f: s.f || '' }); });
+    $('stage').innerHTML = `<div class="question"><div class="q-main"><span class="q-tag">자유 만들기</span>
+        <div class="q-note">친구 이름이나 우리 동네 이름을 로마자로 바꿔 보고, 친구들에게 보여 주며 발표해요. 사람 이름은 성 다음에 「띄어쓰기」를 눌러요.</div>
+        <div class="q-note">성씨는 Kim, Lee, Park처럼 익숙한 표기를 쓰기도 해요.</div></div></div>
+      <div class="slots">${slotsHtml(B, { show: 'both', active: true })}</div>
+      <div class="built"><span class="built-label">로마자</span><span class="built-out">${esc(romanize(toks, F.cap)) || '<span class="cursor">_</span>'}</span></div>
+      <div class="row"><label class="pill" for="capBox" style="display:flex;gap:8px;align-items:center;min-height:44px"><input type="checkbox" id="capBox" ${F.cap ? 'checked' : ''}> 첫 글자 대문자 (이름·지명)</label></div>`;
+    $('capBox').addEventListener('change', (e) => { F.cap = e.target.checked; freeRender(); });
+    const tools = `<button class="tool" type="button" id="spaceBtn">띄어쓰기</button><button class="tool" type="button" id="undoBtn">← 지우기</button><button class="tool" type="button" id="resetBtn">모두 지우기</button>`;
+    showPad(keypadHtml(B.step, 'both', tools));
+    $('undoBtn').addEventListener('click', () => {
+      const s = B.slots[B.cur];
+      if (B.step === 'c' && B.cur > 0) { B.slots.pop(); B.cur--; F.spaces.delete(B.cur + 1); B.slots[B.cur].f = null; B.step = 'f'; }
+      else if (B.step === 'f') { s.v = null; B.step = 'v'; } else if (B.step === 'v') { s.c = null; B.step = 'c'; }
+      freeRender();
+    });
+    $('resetBtn').addEventListener('click', freeStart);
+    $('spaceBtn').addEventListener('click', () => { if (B.step === 'c' && B.cur > 0) { F.spaces.add(B.cur); freeRender(); } });
+  }
+  function freePick(k, v) {
+    const B = S.free.B; if (k !== B.step) return;
+    B.slots[B.cur][k] = v;
+    if (k === 'c') B.step = 'v'; else if (k === 'v') B.step = 'f';
+    else { B.slots.push(emptySlot()); B.cur++; B.step = 'c'; }
+    freeRender();
+  }
 
-  // table modal
+  // ---------- 모드 전환·이벤트 ----------
+  function setMode(m) {
+    S.mode = m;
+    document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.mode === m)));
+    stopClock();
+    if (m === 'mission') missionSetup(); else freeStart();
+    window.scrollTo({ top: 0 });
+  }
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => setMode(t.dataset.mode)));
+  $('pad').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-k]'); if (!b) return;
+    const k = b.dataset.k, v = b.dataset.v;
+    if (S.mode === 'mission' && S.mission) {
+      const M = S.mission; const B = M.phase === 'write' ? M.B : M.R;
+      if (k !== B.step) return; B.slots[B.cur][k] = v; nextEmpty(B); missionRender();
+    } else if (S.mode === 'free') freePick(k, v);
+  });
+
+  // hint sidebar
   $('tblCho').innerHTML = CHO_ORDER.filter(j => j !== 'ㅇ').map(j => `<div class="cell cho"><b>${j}</b><span>${CHO_R[j]}</span></div>`).join('');
   $('tblJung').innerHTML = JUNG_ORDER.map(j => `<div class="cell jung"><b>${j}, ${compose('ㅇ', j, '')}</b><span>${JUNG_R[j]}</span></div>`).join('');
   $('tblJong').innerHTML = JONG_GROUPS.map(g => `<div class="cell jong"><b>${g.keys.join(', ')}</b>${g.name ? `<div style="font-size:12px;color:var(--muted)">(${g.name})</div>` : ''}<span>${g.r}</span></div>`).join('');
-  const open = (id) => { $(id).hidden = false; $(id).querySelector('[data-close]').focus(); };
-  const close = (m) => { m.hidden = true; };
+  function setSide(open) {
+    const side = $('side');
+    side.classList.toggle('open', open); side.inert = !open; $('sideTab').hidden = open;
+    ['sideTab', 'openTable'].forEach(id => $(id).setAttribute('aria-expanded', String(open)));
+    if (open) { markHint(); const now = side.querySelector('section.now'); if (now) now.scrollIntoView({ block: 'nearest' }); $('closeSide').focus({ preventScroll: true }); }
+  }
   $('openTable').addEventListener('click', () => setSide(!$('side').classList.contains('open')));
   $('sideTab').addEventListener('click', () => setSide(true));
   $('closeSide').addEventListener('click', () => { setSide(false); $('sideTab').focus({ preventScroll: true }); });
-  $('openQr').addEventListener('click', () => open('qrModal'));
-  document.querySelectorAll('.modal').forEach(m => {
-    m.addEventListener('click', (e) => { if (e.target === m || e.target.closest('[data-close]')) close(m); });
-  });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { document.querySelectorAll('.modal').forEach(close); setSide(false); } });
-  $('qrForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const url = $('qrUrl').value.trim();
-    const box = $('qrBox'); box.innerHTML = '';
-    if (!/^https?:\/\//.test(url)) { $('qrMsg').textContent = 'https:// 로 시작하는 공유 링크를 붙여 넣어 주세요.'; return; }
+
+  // QR
+  $('openQr').addEventListener('click', () => { $('qrModal').hidden = false; });
+  $('qrModal').addEventListener('click', (e) => { if (e.target === $('qrModal') || e.target.closest('[data-close]')) $('qrModal').hidden = true; });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { $('qrModal').hidden = true; setSide(false); } });
+  const goQr = () => {
+    const url = $('qrUrl').value.trim(); const box = $('qrBox'); box.innerHTML = '';
+    if (!/^https?:\/\//.test(url)) { $('qrMsg').textContent = 'https:// 로 시작하는 주소를 붙여 넣어 주세요.'; return; }
     if (typeof QRCode === 'undefined') { $('qrMsg').textContent = 'QR 도구를 불러오지 못했어요. 인터넷 연결을 확인해 주세요.'; return; }
     new QRCode(box, { text: url, width: 640, height: 640, correctLevel: QRCode.CorrectLevel.M });
     $('qrMsg').textContent = '태블릿 카메라로 찍으면 바로 게임이 열려요.';
-  });
+  };
+  $('qrGo').addEventListener('click', goQr);
+  $('qrUrl').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goQr(); } });
 
-  setMode('s1');
+  setMode('mission');
 })();
 </script>
 
